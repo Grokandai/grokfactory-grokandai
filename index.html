@@ -1,1 +1,118 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>GrokFactory • grokandai</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
+    .neon { text-shadow: 0 0 20px #00ff9d; }
+    .card { background: #111827; border: 1px solid #00ff9d33; }
+    .card:hover { border-color: #00ff9d; transform: translateY(-4px); }
+  </style>
+</head>
+<body class="min-h-screen flex">
+  <!-- Sidebar -->
+  <div class="w-64 bg-[#0f172a] p-6 fixed h-screen">
+    <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
+    <nav class="space-y-6 text-lg">
+      <a href="#" onclick="showDashboard()" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1e2937]">🏠 Dashboard</a>
+      <a href="#" onclick="showTeams()" class="flex items-center gap-3 px-4 py-3 rounded-xl">📊 Teamy</a>
+    </nav>
+  </div>
 
+  <div class="ml-64 flex-1 p-8" id="main">
+    <h1 class="text-6xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
+    <p class="text-xl">Kliknij „Teamy” po lewej, żeby zobaczyć pracę każdego agenta na żywo.</p>
+  </div>
+
+  <!-- Modal -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
+    <div class="bg-zinc-900 p-8 rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <h2 id="modal-title" class="text-4xl neon mb-6"></h2>
+      <div id="modal-agents" class="grid grid-cols-1 gap-6"></div>
+      <button onclick="closeModal()" class="mt-8 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
+    </div>
+  </div>
+
+  <script>
+    function showDashboard() {
+      document.getElementById('main').innerHTML = `<h1 class="text-6xl font-bold neon">Dashboard</h1>`;
+    }
+
+    function showTeams() {
+      document.getElementById('main').innerHTML = `
+        <h1 class="text-6xl font-bold neon mb-8">Teamy</h1>
+        <div class="grid grid-cols-2 gap-6">
+          <div onclick="openTeam('Crypto Warriors')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Crypto Warriors</h3></div>
+          <div onclick="openTeam('Arbitrage Elite')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Arbitrage Elite</h3></div>
+          <div onclick="openTeam('Weather Prophets')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Weather Prophets</h3></div>
+          <div onclick="openTeam('BackTest Team')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">BackTest Team</h3></div>
+        </div>
+      `;
+    }
+
+    const teamAgents = {
+      "Crypto Warriors": [
+        {name:"Agent-1", profit:"+8.4%", loss:"-1.2%", eff:"87%", pos:"14"},
+        {name:"Agent-2", profit:"+4.1%", loss:"-0.9%", eff:"79%", pos:"9"}
+      ],
+      "Arbitrage Elite": [
+        {name:"Agent-1", profit:"+6.7%", loss:"0%", eff:"94%", pos:"47"}
+      ],
+      "Weather Prophets": [
+        {name:"Agent-3", profit:"+3.9%", loss:"-2.1%", eff:"68%", pos:"11"}
+      ],
+      "BackTest Team": []
+    };
+
+    function openTeam(team) {
+      const agents = teamAgents[team] || [];
+      let html = `<h2 class="text-4xl neon mb-6">${team}</h2>`;
+      
+      agents.forEach(agent => {
+        html += `
+          <div class="card p-6 rounded-3xl mb-6">
+            <div class="flex justify-between items-center">
+              <span class="text-2xl">${agent.name}</span>
+              <span class="text-4xl text-green-400">${agent.profit}</span>
+            </div>
+            <div class="grid grid-cols-3 gap-6 mt-6 text-sm">
+              <div>Straty: <span class="text-red-400">${agent.loss}</span></div>
+              <div>Skuteczność: <span class="text-green-400">${agent.eff}</span></div>
+              <div>Pozycje: <span>${agent.pos}</span></div>
+            </div>
+            <canvas id="chart-${agent.name}" class="mt-6"></canvas>
+          </div>
+        `;
+      });
+
+      document.getElementById('modal-agents').innerHTML = html;
+      document.getElementById('modal-title').innerHTML = team;
+      document.getElementById('modal').classList.remove('hidden');
+
+      // Animowane wykresy
+      setTimeout(() => {
+        agents.forEach(agent => {
+          new Chart(document.getElementById(`chart-${agent.name}`), {
+            type: 'line',
+            data: { 
+              labels: ['10:00','11:00','12:00','13:00','14:00'], 
+              datasets: [{ label: agent.name, data: [0, 2.3, 5.8, 4.1, 7.9], borderColor: '#00ff9d', tension: 0.4 }] 
+            },
+            options: { animation: { duration: 2500 } }
+          });
+        });
+      }, 500);
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    // Start
+    showTeams();
+  </script>
+</body>
+</html>
