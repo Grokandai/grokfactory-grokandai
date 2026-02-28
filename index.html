@@ -8,8 +8,8 @@
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
     .neon { text-shadow: 0 0 20px #00ff9d; }
-    .card { background: #111827; border: 1px solid #00ff9d33; transition: all 0.3s; }
-    .card:hover { border-color: #00ff9d; transform: translateY(-4px); }
+    .agent-card { background: #111827; border: 1px solid #00ff9d33; height: 100%; }
+    .agent-card:hover { border-color: #00ff9d; transform: translateY(-6px); }
   </style>
 </head>
 <body class="min-h-screen flex">
@@ -20,14 +20,14 @@
 
   <div class="ml-64 flex-1 p-8" id="main">
     <h1 class="text-6xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
-    <p class="text-xl">Kliknij „Teamy” – teraz masz 60+ agentów</p>
   </div>
 
+  <!-- Modal teamu -->
   <div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
     <div class="bg-zinc-900 p-8 rounded-3xl max-w-7xl w-full max-h-[95vh] overflow-y-auto">
-      <h2 id="modal-title" class="text-4xl neon mb-6"></h2>
-      <div id="modal-agents" class="grid grid-cols-1 md:grid-cols-2 gap-8"></div>
-      <button onclick="closeModal()" class="mt-8 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
+      <h2 id="modal-title" class="text-4xl neon mb-8"></h2>
+      <div id="modal-agents" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <button onclick="closeModal()" class="mt-10 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
     </div>
   </div>
 
@@ -36,44 +36,36 @@
       document.getElementById('main').innerHTML = `
         <h1 class="text-6xl font-bold neon mb-8">Teamy – 60+ agentów</h1>
         <div class="grid grid-cols-2 gap-6">
-          <div onclick="openTeam('Crypto Warriors')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Crypto Warriors (15)</h3></div>
-          <div onclick="openTeam('Arbitrage Elite')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Arbitrage Elite (15)</h3></div>
-          <div onclick="openTeam('Weather Prophets')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Weather Prophets (10)</h3></div>
-          <div onclick="openTeam('Politics Pulse')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Politics Pulse (10)</h3></div>
-          <div onclick="openTeam('Sports Bet Masters')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Sports Bet Masters (10)</h3></div>
-          <div onclick="openTeam('Memecoin Hunters')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Memecoin Hunters (10)</h3></div>
+          <div onclick="openTeam('Crypto Warriors')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Crypto Warriors</h3></div>
+          <div onclick="openTeam('Arbitrage Elite')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Arbitrage Elite</h3></div>
+          <div onclick="openTeam('Weather Prophets')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">Weather Prophets</h3></div>
+          <div onclick="openTeam('BackTest Team')" class="card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-2xl">BackTest Team</h3></div>
         </div>
       `;
     }
 
-    const allTeams = {
-      "Crypto Warriors": Array.from({length:15}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(3.5+i*0.4).toFixed(1)}%`, loss:"-1.8%", eff:"83%", pos:"12", drawdown:"-3.9%", burned:"0"})),
-      "Arbitrage Elite": Array.from({length:15}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(4.2+i*0.3).toFixed(1)}%`, loss:"0%", eff:"92%", pos:"41", drawdown:"-0.6%", burned:"0"})),
-      "Weather Prophets": Array.from({length:10}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(2.9+i*0.2).toFixed(1)}%`, loss:"-2.1%", eff:"71%", pos:"14", drawdown:"-5.4%", burned:"0"})),
-      "Politics Pulse": Array.from({length:10}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(3.1+i*0.3).toFixed(1)}%`, loss:"-1.5%", eff:"79%", pos:"18", drawdown:"-4.1%", burned:"0"})),
-      "Sports Bet Masters": Array.from({length:10}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(4.0+i*0.4).toFixed(1)}%`, loss:"-2.3%", eff:"76%", pos:"22", drawdown:"-6.8%", burned:"1"})),
-      "Memecoin Hunters": Array.from({length:10}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(5.2+i*0.5).toFixed(1)}%`, loss:"-4.1%", eff:"64%", pos:"19", drawdown:"-9.2%", burned:"2"}))
-    };
-
     function openTeam(team) {
-      const agents = allTeams[team] || [];
-      let html = `<h2 class="text-4xl neon mb-8">${team} – ${agents.length} agentów</h2><div class="grid grid-cols-1 lg:grid-cols-2 gap-8">`;
+      const agents = {
+        "Crypto Warriors": Array.from({length:8}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(4.1+i*0.6).toFixed(1)}%` })),
+        "Arbitrage Elite": Array.from({length:6}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(5.2+i*0.4).toFixed(1)}%` })),
+        "Weather Prophets": Array.from({length:5}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(3.8+i*0.3).toFixed(1)}%` })),
+        "BackTest Team": [
+          {name:"Hazardowy", profit:"+21.3%"},
+          {name:"Konserwatywny", profit:"+4.8%"}
+        ]
+      }[team] || [];
+
+      let html = `<h2 class="text-4xl neon mb-8">${team}</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
 
       agents.forEach(agent => {
         html += `
-          <div class="card p-6 rounded-3xl">
-            <div class="flex justify-between mb-6">
-              <span class="text-3xl">${agent.name}</span>
-              <span class="text-5xl text-green-400">${agent.profit}</span>
+          <div class="agent-card p-6 rounded-3xl flex flex-col">
+            <div class="flex-1">
+              <h3 class="text-2xl">${agent.name}</h3>
+              <p class="text-5xl text-green-400 mt-4">${agent.profit}</p>
             </div>
-            <div class="grid grid-cols-2 gap-6 text-sm mb-6">
-              <div>Straty: <span class="text-red-400">${agent.loss}</span></div>
-              <div>Skuteczność: <span class="text-green-400">${agent.eff}%</span></div>
-              <div>Pozycje: <span>${agent.pos}</span></div>
-              <div>Max Drawdown: <span class="text-red-400">${agent.drawdown}%</span></div>
-              <div class="col-span-2">Spalił konto: <span class="text-yellow-400">${agent.burned} razy</span></div>
-            </div>
-            <canvas id="chart-${agent.name}" class="h-64"></canvas>
+            <button onclick="alert('Szczegóły agenta ${agent.name} – tu będą wszystkie transakcje i wykresy')" 
+                    class="mt-6 bg-green-600 hover:bg-green-500 py-3 px-6 rounded-2xl text-sm font-bold">SZCZEGÓŁY + TRANSAKCJE</button>
           </div>
         `;
       });
@@ -82,16 +74,6 @@
       document.getElementById('modal-agents').innerHTML = html;
       document.getElementById('modal-title').innerHTML = team;
       document.getElementById('modal').classList.remove('hidden');
-
-      setTimeout(() => {
-        agents.forEach(agent => {
-          new Chart(document.getElementById(`chart-${agent.name}`), {
-            type: 'line',
-            data: { labels: ['10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00'], datasets: [{ label: agent.name, data: [0,2.1,4.8,6.3,5.1,7.9,6.4,8.7,9.2], borderColor: '#00ff9d', borderWidth: 4, tension: 0.4 }] },
-            options: { animation: { duration: 2800 } }
-          });
-        });
-      }, 400);
     }
 
     function closeModal() {
