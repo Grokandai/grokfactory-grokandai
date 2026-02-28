@@ -8,53 +8,56 @@
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
     .neon { text-shadow: 0 0 20px #00ff9d; }
-    .card { background: #111827; border: 1px solid #00ff9d33; }
+    .card { background: #111827; border: 1px solid #00ff9d33; transition: all 0.3s; }
     .card:hover { border-color: #00ff9d; transform: translateY(-4px); }
-    .sidebar { background: #0f172a; }
+    .sidebar a { transition: all 0.3s; }
+    .sidebar a.active { background: #1e2937; border-left: 4px solid #00ff9d; color: white; }
   </style>
 </head>
 <body class="min-h-screen flex">
   <!-- Sidebar -->
-  <div class="sidebar w-64 p-6 fixed h-screen">
+  <div class="w-64 bg-[#0f172a] p-6 fixed h-screen">
     <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
-    <nav class="space-y-6 text-lg">
-      <a href="#" class="flex items-center gap-3 text-green-400">🏠 Dashboard</a>
-      <a href="#" class="flex items-center gap-3">📊 Teamy</a>
-      <a href="#" class="flex items-center gap-3">📈 Wykresy</a>
-      <a href="#" class="flex items-center gap-3">🔄 Arbitrage</a>
-      <a href="#" class="flex items-center gap-3">📚 Knowledge Cluster</a>
-      <a href="#" class="flex items-center gap-3">📋 BackTest Team</a>
+    <nav class="space-y-2 text-lg">
+      <a href="#" onclick="switchTab(0)" class="active flex items-center gap-3 px-4 py-3 rounded-xl">🏠 Dashboard</a>
+      <a href="#" onclick="switchTab(1)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📊 Teamy</a>
+      <a href="#" onclick="switchTab(2)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📈 Wykresy</a>
+      <a href="#" onclick="switchTab(3)" class="flex items-center gap-3 px-4 py-3 rounded-xl">🔄 Arbitrage</a>
+      <a href="#" onclick="switchTab(4)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📚 Knowledge Cluster</a>
+      <a href="#" onclick="switchTab(5)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📋 BackTest Team</a>
     </nav>
   </div>
 
-  <div class="ml-64 flex-1 p-8">
-    <h1 class="text-6xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
-
-    <!-- Ceny -->
-    <div class="grid grid-cols-3 gap-6 mb-10" id="prices"></div>
-
-    <!-- Teamy -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12" id="teams"></div>
-
-    <!-- Wykres + Recent Trades + Polymarket -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="card p-6 rounded-3xl lg:col-span-2">
-        <h3 class="text-xl mb-4">BTC Live Chart</h3>
-        <canvas id="btcChart" height="220"></canvas>
-      </div>
-      <div class="card p-6 rounded-3xl">
-        <h3 class="text-xl mb-4">Recent Trades</h3>
-        <div id="trades" class="text-sm space-y-3"></div>
-      </div>
-      <div class="card p-6 rounded-3xl">
-        <h3 class="text-xl mb-4">Polymarket Odds</h3>
-        <div id="polymarket" class="text-sm space-y-3"></div>
-      </div>
-    </div>
-  </div>
+  <!-- Główna treść -->
+  <div class="ml-64 flex-1 p-8" id="main-content"></div>
 
   <script>
-    // Ceny
+    function switchTab(tab) {
+      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+      document.querySelectorAll('.sidebar a')[tab].classList.add('active');
+
+      const content = document.getElementById('main-content');
+
+      if (tab === 0) { // DASHBOARD
+        content.innerHTML = `
+          <h1 class="text-6xl font-bold neon mb-8">Dashboard</h1>
+          <div class="grid grid-cols-3 gap-6 mb-10" id="prices"></div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12" id="teams"></div>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="card p-6 rounded-3xl"><h3 class="text-xl mb-4">BTC Live Chart</h3><canvas id="btcChart" height="220"></canvas></div>
+            <div class="card p-6 rounded-3xl"><h3 class="text-xl mb-4">Recent Trades</h3><div id="trades" class="text-sm space-y-3"></div></div>
+          </div>
+        `;
+        loadPrices(); renderTeams(); loadChart(); loadTrades();
+      }
+      if (tab === 1) content.innerHTML = `<h1 class="text-6xl font-bold neon">Teamy</h1><p class="mt-8 text-xl">Crypto Warriors • Arbitrage Elite • Weather Prophets • BackTest Team</p>`;
+      if (tab === 2) content.innerHTML = `<h1 class="text-6xl font-bold neon">Wykresy</h1><p class="mt-8 text-xl">Tu będą pełne wykresy wszystkich aktywów</p>`;
+      if (tab === 3) content.innerHTML = `<h1 class="text-6xl font-bold neon">Arbitrage</h1><p class="mt-8 text-xl">Aktualne gapy + przycisk RUN ARBITRAGE</p>`;
+      if (tab === 4) content.innerHTML = `<h1 class="text-6xl font-bold neon">Knowledge Cluster</h1><p class="mt-8 text-xl">+89 reguł • 312 faktów</p>`;
+      if (tab === 5) content.innerHTML = `<h1 class="text-6xl font-bold neon">BackTest Team</h1><p class="mt-8 text-xl text-yellow-400">Start 3 marca – klony Hazardowy i Konserwatywny gotowe</p>`;
+    }
+
+    // Funkcje pomocnicze
     async function loadPrices() {
       const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,matic-network&vs_currencies=usd');
       const d = await res.json();
@@ -64,36 +67,34 @@
         <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">POL</div><div class="text-5xl font-bold">$${(d['matic-network']?.usd || 0.106).toFixed(4)}</div></div>
       `;
     }
-    setInterval(loadPrices, 30000); loadPrices();
 
-    // Teamy
-    document.getElementById('teams').innerHTML = `
-      <div class="card p-6 rounded-3xl text-center"><h3>Crypto Warriors</h3><p class="text-4xl text-green-400">+5.2%</p><p>ACTIVE</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>Arbitrage Elite</h3><p class="text-4xl text-green-400">+4.1%</p><p>LIVE</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>Weather Prophets</h3><p class="text-4xl text-green-400">+3.3%</p><p>KALSHI ON</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>BackTest Team</h3><p class="text-4xl text-yellow-400">w budowie</p></div>
-    `;
+    function renderTeams() {
+      document.getElementById('teams').innerHTML = `
+        <div class="card p-6 rounded-3xl text-center"><h3>Crypto Warriors</h3><p class="text-4xl text-green-400">+5.2%</p><p>ACTIVE</p></div>
+        <div class="card p-6 rounded-3xl text-center"><h3>Arbitrage Elite</h3><p class="text-4xl text-green-400">+4.1%</p><p>LIVE</p></div>
+        <div class="card p-6 rounded-3xl text-center"><h3>Weather Prophets</h3><p class="text-4xl text-green-400">+3.3%</p><p>KALSHI ON</p></div>
+        <div class="card p-6 rounded-3xl text-center"><h3>BackTest Team</h3><p class="text-4xl text-yellow-400">w budowie</p></div>
+      `;
+    }
 
-    // Wykres BTC
-    new Chart(document.getElementById('btcChart'), {
-      type: 'line',
-      data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: 'BTC', data: [63500,63800,64000,63900,64100], borderColor: '#00ff9d', tension: 0.4 }] },
-      options: { scales: { y: { grid: { color: '#ffffff11' } } } }
-    });
+    function loadChart() {
+      new Chart(document.getElementById('btcChart'), {
+        type: 'line',
+        data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: 'BTC', data: [63500,63800,64000,63900,64100], borderColor: '#00ff9d', tension: 0.4 }] },
+        options: { scales: { y: { grid: { color: '#ffffff11' } } } }
+      });
+    }
 
-    // Recent Trades
-    document.getElementById('trades').innerHTML = `
-      <div>LONG BTC @ $64,011 → +0.8%</div>
-      <div>Arbitrage Gap → +1.3%</div>
-      <div>ETH Long → +8%</div>
-    `;
+    function loadTrades() {
+      document.getElementById('trades').innerHTML = `
+        <div>LONG BTC @ $64,011 → +0.8%</div>
+        <div>Arbitrage Gap → +1.3%</div>
+        <div>ETH Long → +8%</div>
+      `;
+    }
 
-    // Polymarket
-    document.getElementById('polymarket').innerHTML = `
-      <div>JD Vance 2028: <span class="text-green-400">42% YES</span></div>
-      <div>Barcelona win: <span class="text-green-400">60%</span></div>
-      <div>BTC >70k marzec: <span class="text-green-400">31%</span></div>
-    `;
+    // Start
+    switchTab(0);
   </script>
 </body>
 </html>
