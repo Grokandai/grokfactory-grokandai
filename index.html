@@ -4,56 +4,61 @@
   <meta charset="UTF-8">
   <title>GrokFactory • grokandai</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
-    .neon { text-shadow: 0 0 15px #00ff9d, 0 0 30px #00ff9d; }
-    .card { background: #111827; border: 1px solid #00ff9d22; transition: all 0.3s; }
-    .card:hover { border-color: #00ff9d; transform: translateY(-4px); box-shadow: 0 0 25px #00ff9d44; }
+    .neon { text-shadow: 0 0 20px #00ff9d; }
+    .card { background: #111827; border: 1px solid #00ff9d33; }
+    .sidebar { background: #0f172a; }
   </style>
 </head>
-<body class="min-h-screen p-8">
-  <div class="max-w-7xl mx-auto">
-    <h1 class="text-6xl font-bold text-center mb-2 neon">GROKFACTORY • GROKANDAI</h1>
-    <p class="text-center text-lg mb-8">Live Dashboard 2.0 • Polska 2026</p>
-
-    <!-- Ceny -->
-    <div class="grid grid-cols-3 gap-6 mb-10" id="prices"></div>
-
-    <!-- Teamy (klikalne!) -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12" id="teams"></div>
-
-    <!-- Feed + Cluster -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="card p-6 rounded-3xl">
-        <h3 class="text-2xl mb-4 flex items-center gap-2"><span class="text-green-400">●</span> Research Feed (co minutę)</h3>
-        <div id="feed" class="text-sm space-y-3 max-h-96 overflow-y-auto"></div>
-      </div>
-      <div class="card p-6 rounded-3xl">
-        <h3 class="text-2xl mb-4">Knowledge Cluster</h3>
-        <div class="bg-black/70 p-5 rounded-2xl text-green-400 text-sm">
-          +89 reguł • 312 faktów<br>
-          Ostatnia aktualizacja: przed chwilą
-        </div>
-        <button onclick="alert('Klaster zaktualizowany!')" class="mt-6 w-full bg-blue-600 py-4 rounded-2xl font-bold">UPDATE KNOWLEDGE CLUSTER</button>
-      </div>
-    </div>
-
-    <div class="flex justify-center gap-8 mt-10">
-      <button onclick="alert('✅ Motywacja wysłana do wszystkich agentów!')" class="bg-green-500 hover:bg-green-400 text-black px-12 py-5 rounded-2xl font-bold text-xl">MOTYWUJ TEAMY</button>
-      <button onclick="alert('🚀 Arbitrage RUN! Szukam gapów...')" class="bg-yellow-500 hover:bg-yellow-400 text-black px-12 py-5 rounded-2xl font-bold text-xl">RUN ARBITRAGE</button>
-    </div>
+<body class="min-h-screen flex">
+  <!-- Sidebar -->
+  <div class="sidebar w-64 p-6 fixed h-screen">
+    <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
+    <nav class="space-y-6 text-lg">
+      <a href="#" class="flex items-center gap-3 text-green-400">🏠 Dashboard</a>
+      <a href="#" class="flex items-center gap-3">📊 Teamy</a>
+      <a href="#" class="flex items-center gap-3">📈 Wykresy</a>
+      <a href="#" class="flex items-center gap-3">🔄 Arbitrage</a>
+      <a href="#" class="flex items-center gap-3">📚 Knowledge Cluster</a>
+      <a href="#" class="flex items-center gap-3">📋 BackTest Team</a>
+    </nav>
   </div>
 
-  <!-- Modal szczegółów teamu -->
-  <div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
-    <div class="bg-zinc-900 p-8 rounded-3xl max-w-md w-full mx-4">
-      <h2 id="modal-title" class="text-3xl mb-6"></h2>
-      <div id="modal-content" class="text-sm"></div>
-      <button onclick="closeModal()" class="mt-8 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
+  <div class="ml-64 flex-1 p-8">
+    <h1 class="text-5xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
+
+    <!-- Ceny live -->
+    <div class="grid grid-cols-3 gap-6 mb-10" id="prices"></div>
+
+    <!-- Główna siatka paneli -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- Team cards -->
+      <div id="teams" class="lg:col-span-2 grid grid-cols-2 gap-6"></div>
+
+      <!-- Wykres -->
+      <div class="card p-6 rounded-3xl">
+        <h3 class="text-xl mb-4">BTC Live Chart</h3>
+        <canvas id="btcChart" height="200"></canvas>
+      </div>
+    </div>
+
+    <!-- Recent trades + Feed -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+      <div class="card p-6 rounded-3xl">
+        <h3 class="text-xl mb-4">Recent Trades (ostatnie 2h)</h3>
+        <div id="trades" class="text-sm space-y-3"></div>
+      </div>
+      <div class="card p-6 rounded-3xl">
+        <h3 class="text-xl mb-4">Research Feed</h3>
+        <div id="feed" class="text-sm space-y-3 max-h-96 overflow-y-auto"></div>
+      </div>
     </div>
   </div>
 
   <script>
+    // Ceny
     async function loadPrices() {
       const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,matic-network&vs_currencies=usd');
       const d = await res.json();
@@ -65,39 +70,35 @@
     }
     setInterval(loadPrices, 30000); loadPrices();
 
-    const logs = ["Arbitrage #48 +1.3%", "Turbo backtest +41.7%", "BackTest Team gotowy", "BTC odbicie wykryte", "Kalshi weather +1.9%"];
+    // Teamy
+    document.getElementById('teams').innerHTML = `
+      <div class="card p-6 rounded-3xl text-center"><h3>Crypto Warriors</h3><p class="text-4xl text-green-400">+5.2%</p><p>ACTIVE</p></div>
+      <div class="card p-6 rounded-3xl text-center"><h3>Arbitrage Elite</h3><p class="text-4xl text-green-400">+4.1%</p><p>LIVE</p></div>
+      <div class="card p-6 rounded-3xl text-center"><h3>Weather Prophets</h3><p class="text-4xl text-green-400">+3.3%</p><p>KALSHI ON</p></div>
+      <div class="card p-6 rounded-3xl text-center"><h3>BackTest Team</h3><p class="text-4xl text-yellow-400">w budowie</p></div>
+    `;
+
+    // Wykres BTC
+    new Chart(document.getElementById('btcChart'), {
+      type: 'line',
+      data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: 'BTC', data: [63500,63800,64000,63900,64100], borderColor: '#00ff9d', tension: 0.4 }] },
+      options: { scales: { y: { grid: { color: '#ffffff11' } } } }
+    });
+
+    // Feed
+    const logs = ["Arbitrage +1.3%", "Turbo +41.7%", "BTC odbicie wykryte", "Kalshi pozycja otwarta"];
     let i = 0;
     setInterval(() => {
       document.getElementById('feed').innerHTML += `<div class="bg-black p-3 rounded-xl">→ ${logs[i % logs.length]}</div>`;
       i++;
-    }, 3500);
+    }, 4000);
 
-    const teamsData = [
-      {name:"Crypto Warriors", profit:"+5.2%", status:"ACTIVE", details:"LONG BTC @ $64,011<br>+0.8% w ostatniej godzinie"},
-      {name:"Arbitrage Elite", profit:"+4.1%", status:"LIVE", details:"Gap Polymarket zamknięty +1.3%<br>124 mikro-trades"},
-      {name:"Weather Prophets", profit:"+3.3%", status:"KALSHI ON", details:"EU Winter 2026 Yes +1.9%"},
-      {name:"BackTest Team", profit:"w budowie", status:"START 3 MARCA", details:"Klon Hazardowy i Konserwatywny gotowe"}
-    ];
-
-    function renderTeams() {
-      let html = "";
-      teamsData.forEach(t => {
-        html += `<div onclick="showTeam('${t.name}', '${t.profit}', '${t.status}', '${t.details}')" class="card p-6 rounded-3xl text-center cursor-pointer">
-          <h3 class="text-xl">${t.name}</h3>
-          <p class="text-4xl text-green-400">${t.profit}</p>
-          <p class="text-sm">${t.status}</p>
-        </div>`;
-      });
-      document.getElementById('teams').innerHTML = html;
-    }
-    renderTeams();
-
-    function showTeam(name, profit, status, details) {
-      document.getElementById('modal-title').innerHTML = `${name} <span class="text-green-400">${profit}</span>`;
-      document.getElementById('modal-content').innerHTML = `<div class="bg-black p-5 rounded-2xl">${details}</div>`;
-      document.getElementById('modal').classList.remove('hidden');
-    }
-    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+    // Recent trades (przykłady)
+    document.getElementById('trades').innerHTML = `
+      <div>LONG BTC @ $64,011 → +0.8%</div>
+      <div>Arbitrage Polymarket +1.3%</div>
+      <div>ETH Long +8% złapane</div>
+    `;
   </script>
 </body>
 </html>
