@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>GrokFactory • grokandai</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
     .neon { text-shadow: 0 0 20px #00ff9d; }
@@ -23,17 +24,39 @@
   <!-- Sidebar -->
   <div class="w-64 bg-[#0f172a] p-6 fixed h-screen">
     <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
-    <a href="#" onclick="showTeams()" class="block px-4 py-3 rounded-xl bg-[#1e2937] text-xl">📊 Teamy (wszystkie)</a>
+    <a href="#" onclick="showTeams()" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1e2937]">📊 Teamy</a>
   </div>
 
   <div class="ml-64 flex-1 p-8" id="main"></div>
 
-  <!-- Modal -->
-  <div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
+  <!-- Modal teamu -->
+  <div id="team-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
     <div class="bg-zinc-900 p-8 rounded-3xl max-w-7xl w-full max-h-[95vh] overflow-y-auto">
-      <h2 id="modal-title" class="text-4xl neon mb-8 text-center"></h2>
-      <div id="modal-agents" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      <button onclick="closeModal()" class="mt-12 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
+      <h2 id="team-title" class="text-4xl neon mb-8 text-center"></h2>
+      <div id="team-agents" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <button onclick="closeTeamModal()" class="mt-12 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- Modal agenta (transakcje + wykres) -->
+  <div id="agent-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
+    <div class="bg-zinc-900 p-8 rounded-3xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
+      <h2 id="agent-title" class="text-4xl neon mb-8"></h2>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div class="card p-6 rounded-3xl" id="agent-stats"></div>
+        <div class="card p-6 rounded-3xl">
+          <h3 class="text-xl mb-4">Equity Curve</h3>
+          <canvas id="equityChart" class="h-80"></canvas>
+        </div>
+      </div>
+
+      <div class="card p-6 rounded-3xl mt-8">
+        <h3 class="text-xl mb-4">Wszystkie transakcje</h3>
+        <div id="transactions" class="space-y-3"></div>
+      </div>
+
+      <button onclick="closeAgentModal()" class="mt-10 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
     </div>
   </div>
 
@@ -45,9 +68,7 @@
           <div onclick="openTeam('Crypto Warriors')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Crypto Warriors</h3></div>
           <div onclick="openTeam('Arbitrage Elite')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Arbitrage Elite</h3></div>
           <div onclick="openTeam('Weather Prophets')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Weather Prophets</h3></div>
-          <div onclick="openTeam('Politics Pulse')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Politics Pulse</h3></div>
-          <div onclick="openTeam('Sports Bet Masters')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Sports Bet Masters</h3></div>
-          <div onclick="openTeam('Memecoin Hunters')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Memecoin Hunters</h3></div>
+          <div onclick="openTeam('BackTest Team')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">BackTest Team</h3></div>
         </div>
       `;
     }
@@ -55,7 +76,7 @@
     function openTeam(team) {
       const agents = Array.from({length: 9}, (_, i) => ({
         name: `Agent-${i+1}`,
-        profit: `+${(4.5 + i*0.7).toFixed(1)}%`
+        profit: `+${(4.5 + i*0.8).toFixed(1)}%`
       }));
 
       let html = `<h2 class="text-4xl neon mb-10 text-center">${team}</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
@@ -67,8 +88,7 @@
               <h3 class="text-3xl">${agent.name}</h3>
               <p class="text-6xl text-green-400">${agent.profit}</p>
             </div>
-            <button onclick="alert('Tu będą wszystkie transakcje i wykresy agenta ${agent.name}')" 
-                    class="mt-8 bg-green-600 hover:bg-green-500 py-5 rounded-2xl font-bold">
+            <button onclick="openAgent('${team}', '${agent.name}')" class="mt-8 bg-green-600 hover:bg-green-500 py-5 rounded-2xl font-bold">
               SZCZEGÓŁY + TRANSAKCJE
             </button>
           </div>
@@ -76,13 +96,49 @@
       });
 
       html += `</div>`;
-      document.getElementById('modal-title').innerHTML = team;
-      document.getElementById('modal-agents').innerHTML = html;
-      document.getElementById('modal').classList.remove('hidden');
+      document.getElementById('team-title').innerHTML = team;
+      document.getElementById('team-agents').innerHTML = html;
+      document.getElementById('team-modal').classList.remove('hidden');
+    }
+
+    function openAgent(team, agentName) {
+      document.getElementById('agent-title').innerHTML = `${team} • ${agentName}`;
+
+      document.getElementById('agent-stats').innerHTML = `
+        <div class="space-y-4 text-lg">
+          <div>Zysk: <span class="text-green-400">+6.7%</span></div>
+          <div>Straty: <span class="text-red-400">-0.5%</span></div>
+          <div>Skuteczność: <span class="text-green-400">94%</span></div>
+          <div>Pozycje: <span class="font-bold">47</span></div>
+          <div>Max Drawdown: <span class="text-red-400">-0.5%</span></div>
+          <div>Spalił konto: <span class="text-yellow-400">0 razy</span></div>
+        </div>
+      `;
+
+      document.getElementById('transactions').innerHTML = `
+        <div class="bg-black p-4 rounded-2xl flex justify-between"><span>10:15 BTC LONG</span><span class="text-green-400">+2.4%</span></div>
+        <div class="bg-black p-4 rounded-2xl flex justify-between"><span>11:30 ETH SHORT</span><span class="text-red-400">-0.8%</span></div>
+        <div class="bg-black p-4 rounded-2xl flex justify-between"><span>13:00 POL LONG</span><span class="text-green-400">+1.9%</span></div>
+      `;
+
+      document.getElementById('team-modal').classList.add('hidden');
+      document.getElementById('agent-modal').classList.remove('hidden');
+
+      // Wykres
+      setTimeout(() => {
+        new Chart(document.getElementById('equityChart'), {
+          type: 'line',
+          data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: agentName, data: [0,2.4,5.9,4.8,8.7], borderColor: '#00ff9d', borderWidth: 5, tension: 0.4 }] }
+        });
+      }, 300);
     }
 
     function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('team-modal').classList.add('hidden');
+    }
+
+    function closeAgentModal() {
+      document.getElementById('agent-modal').classList.add('hidden');
     }
 
     showTeams();
