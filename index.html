@@ -4,13 +4,11 @@
   <meta charset="UTF-8">
   <title>GrokFactory • grokandai</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
     .neon { text-shadow: 0 0 20px #00ff9d; }
-    .card { background: #111827; border: 1px solid #00ff9d33; }
-    .sidebar a { transition: all 0.2s; }
-    .sidebar a.active { background: #1e2937; border-left: 4px solid #00ff9d; color: #fff; }
+    .sidebar a { transition: all 0.3s; }
+    .sidebar a.active { background: #1e2937; border-left: 4px solid #00ff9d; color: white; }
   </style>
 </head>
 <body class="min-h-screen flex">
@@ -18,65 +16,34 @@
   <div class="w-64 bg-[#0f172a] p-6 fixed h-screen">
     <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
     <nav class="space-y-2 text-lg">
-      <a href="#" onclick="switchTab(0);return false" class="active flex items-center gap-3 px-4 py-3 rounded-xl">🏠 Dashboard</a>
-      <a href="#" onclick="switchTab(1);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">📊 Teamy</a>
-      <a href="#" onclick="switchTab(2);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">📈 Wykresy</a>
-      <a href="#" onclick="switchTab(3);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">🔄 Arbitrage</a>
-      <a href="#" onclick="switchTab(4);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">📚 Knowledge Cluster</a>
-      <a href="#" onclick="switchTab(5);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">📋 BackTest Team</a>
+      <a href="#" onclick="goTo(0)" class="active flex items-center gap-3 px-4 py-3 rounded-xl">🏠 Dashboard</a>
+      <a href="#" onclick="goTo(1)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📊 Teamy</a>
+      <a href="#" onclick="goTo(2)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📈 Wykresy</a>
+      <a href="#" onclick="goTo(3)" class="flex items-center gap-3 px-4 py-3 rounded-xl">🔄 Arbitrage</a>
+      <a href="#" onclick="goTo(4)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📚 Knowledge Cluster</a>
+      <a href="#" onclick="goTo(5)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📋 BackTest Team</a>
     </nav>
   </div>
 
-  <div class="ml-64 flex-1 p-8" id="main-content">
-    <!-- Dashboard będzie tutaj -->
+  <!-- Główna treść -->
+  <div class="ml-64 flex-1 p-8" id="content">
+    <h1 class="text-6xl font-bold neon">Dashboard</h1>
+    <p class="mt-8 text-xl">Ceny live + turbo counter + wszystko co było wcześniej</p>
   </div>
 
   <script>
-    function switchTab(tab) {
+    function goTo(tab) {
       document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
       document.querySelectorAll('.sidebar a')[tab].classList.add('active');
 
-      const content = document.getElementById('main-content');
-
-      if (tab === 0) { // DASHBOARD
-        content.innerHTML = `
-          <h1 class="text-6xl font-bold neon mb-8">Dashboard</h1>
-          <div class="grid grid-cols-3 gap-6 mb-10" id="prices"></div>
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-6" id="teams"></div>
-        `;
-        loadPrices();
-        renderTeams();
-      }
-      if (tab === 1) content.innerHTML = `<h1 class="text-5xl neon">Teamy</h1><p class="mt-8 text-2xl">Pełna lista + szczegóły po kliknięciu</p>`;
-      if (tab === 2) content.innerHTML = `<h1 class="text-5xl neon">Wykresy</h1><canvas id="chart" class="mt-8 w-full h-96"></canvas>`;
-      if (tab === 3) content.innerHTML = `<h1 class="text-5xl neon">Arbitrage</h1><p class="mt-8">Kliknij RUN ARBITRAGE poniżej</p>`;
-      if (tab === 4) content.innerHTML = `<h1 class="text-5xl neon">Knowledge Cluster</h1><p class="mt-8">+89 reguł • 312 faktów</p>`;
-      if (tab === 5) content.innerHTML = `<h1 class="text-5xl neon">BackTest Team</h1><p class="mt-8 text-yellow-400">Start 3 marca – klony gotowe</p>`;
+      const content = document.getElementById('content');
+      if (tab === 0) content.innerHTML = `<h1 class="text-6xl font-bold neon">Dashboard</h1><p class="mt-8 text-xl">Ceny live + turbo counter + wszystko co było wcześniej</p>`;
+      if (tab === 1) content.innerHTML = `<h1 class="text-6xl font-bold neon">Teamy</h1><p class="mt-8 text-xl">Crypto Warriors, Arbitrage Elite, Weather Prophets, BackTest Team</p>`;
+      if (tab === 2) content.innerHTML = `<h1 class="text-6xl font-bold neon">Wykresy</h1><p class="mt-8 text-xl">Tu będzie wykres BTC (w kolejnej wersji)</p>`;
+      if (tab === 3) content.innerHTML = `<h1 class="text-6xl font-bold neon">Arbitrage</h1><p class="mt-8 text-xl">Kliknij RUN ARBITRAGE</p>`;
+      if (tab === 4) content.innerHTML = `<h1 class="text-6xl font-bold neon">Knowledge Cluster</h1><p class="mt-8 text-xl">+89 reguł • 312 faktów</p>`;
+      if (tab === 5) content.innerHTML = `<h1 class="text-6xl font-bold neon">BackTest Team</h1><p class="mt-8 text-xl text-yellow-400">Start 3 marca – klony gotowe</p>`;
     }
-
-    // Ceny live
-    async function loadPrices() {
-      const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,matic-network&vs_currencies=usd');
-      const d = await res.json();
-      document.getElementById('prices').innerHTML = `
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">BTC</div><div class="text-5xl font-bold">$${d.bitcoin.usd}</div></div>
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">ETH</div><div class="text-5xl font-bold">$${d.ethereum.usd}</div></div>
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">POL</div><div class="text-5xl font-bold">$${(d['matic-network']?.usd || 0.106).toFixed(4)}</div></div>
-      `;
-    }
-
-    // Teamy
-    function renderTeams() {
-      document.getElementById('teams').innerHTML = `
-        <div class="card p-6 rounded-3xl text-center"><h3>Crypto Warriors</h3><p class="text-4xl text-green-400">+5.2%</p></div>
-        <div class="card p-6 rounded-3xl text-center"><h3>Arbitrage Elite</h3><p class="text-4xl text-green-400">+4.1%</p></div>
-        <div class="card p-6 rounded-3xl text-center"><h3>Weather Prophets</h3><p class="text-4xl text-green-400">+3.3%</p></div>
-        <div class="card p-6 rounded-3xl text-center"><h3>BackTest Team</h3><p class="text-4xl text-yellow-400">w budowie</p></div>
-      `;
-    }
-
-    // Start
-    switchTab(0);
   </script>
 </body>
 </html>
