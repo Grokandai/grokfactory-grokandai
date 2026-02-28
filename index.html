@@ -21,10 +21,10 @@
 
   <div class="ml-64 flex-1 p-8" id="main">
     <h1 class="text-6xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
-    <p class="text-xl">Kliknij „Teamy” i porównuj wszystko</p>
+    <p class="text-xl">Kliknij „Teamy” → wybierz team → zobacz ulepszone wykresy</p>
   </div>
 
-  <!-- Modal z wszystkimi agentami teamu -->
+  <!-- Modal -->
   <div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
     <div class="bg-zinc-900 p-8 rounded-3xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
       <h2 id="modal-title" class="text-4xl neon mb-6"></h2>
@@ -58,14 +58,14 @@
         {name:"Agent-3", profit:"+3.9%", loss:"-2.1%", eff:"68%", pos:"11", drawdown:"-5.1%", burned:"0"}
       ],
       "BackTest Team": [
-        {name:"Hazardowy Klon", profit:"+21.3%", loss:"-12.4%", eff:"61%", pos:"28", drawdown:"-18.7%", burned:"3"},
-        {name:"Konserwatywny Klon", profit:"+4.8%", loss:"-0.3%", eff:"91%", pos:"12", drawdown:"-1.1%", burned:"0"}
+        {name:"Hazardowy", profit:"+21.3%", loss:"-12.4%", eff:"61%", pos:"28", drawdown:"-18.7%", burned:"3"},
+        {name:"Konserwatywny", profit:"+4.8%", loss:"-0.3%", eff:"91%", pos:"12", drawdown:"-1.1%", burned:"0"}
       ]
     };
 
     function openTeamModal(team) {
       const agents = allTeams[team] || [];
-      let html = `<h2 class="text-4xl neon mb-8">${team}</h2><div class="grid grid-cols-1 lg:grid-cols-2 gap-8">`;
+      let html = `<h2 class="text-4xl neon mb-6">${team}</h2><div class="grid grid-cols-1 lg:grid-cols-2 gap-8">`;
 
       agents.forEach(agent => {
         html += `
@@ -74,14 +74,14 @@
               <span class="text-3xl">${agent.name}</span>
               <span class="text-5xl text-green-400">${agent.profit}</span>
             </div>
-            <div class="grid grid-cols-2 gap-6 text-sm">
+            <div class="grid grid-cols-2 gap-6 text-sm mb-6">
               <div>Straty: <span class="text-red-400">${agent.loss}</span></div>
               <div>Skuteczność: <span class="text-green-400">${agent.eff}%</span></div>
               <div>Pozycje: <span class="font-bold">${agent.pos}</span></div>
               <div>Max Drawdown: <span class="text-red-400">${agent.drawdown}%</span></div>
               <div class="col-span-2">Spalił konto: <span class="text-yellow-400">${agent.burned} razy</span></div>
             </div>
-            <canvas id="chart-${agent.name}" class="mt-8 h-64"></canvas>
+            <canvas id="chart-${agent.name}" class="h-80"></canvas>
           </div>
         `;
       });
@@ -91,13 +91,31 @@
       document.getElementById('modal-title').innerHTML = team;
       document.getElementById('modal').classList.remove('hidden');
 
-      // Animowane wykresy dla WSZYSTKICH agentów
+      // Ulepszone animowane wykresy
       setTimeout(() => {
         agents.forEach(agent => {
           new Chart(document.getElementById(`chart-${agent.name}`), {
             type: 'line',
-            data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: agent.name, data: [0, 3.2, 6.8, 4.9, 8.7], borderColor: '#00ff9d', tension: 0.4 }] },
-            options: { animation: { duration: 2800 } }
+            data: {
+              labels: ['10:00','10:30','11:00','11:30','12:00','12:30','13:00','13:30','14:00'],
+              datasets: [{
+                label: agent.name,
+                data: [0, 1.8, 3.9, 5.2, 6.8, 5.1, 4.7, 7.3, 8.9],
+                borderColor: '#00ff9d',
+                borderWidth: 4,
+                tension: 0.4,
+                pointRadius: 5,
+                pointHoverRadius: 8
+              }]
+            },
+            options: {
+              animation: { duration: 3000, easing: 'easeOutQuart' },
+              scales: {
+                y: { grid: { color: '#ffffff11' }, ticks: { color: '#00ff9d' } },
+                x: { grid: { color: '#ffffff11' }, ticks: { color: '#00ff9d' } }
+              },
+              plugins: { legend: { display: true, labels: { color: '#00ff9d' } } }
+            }
           });
         });
       }, 400);
