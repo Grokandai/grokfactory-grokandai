@@ -54,7 +54,7 @@
   </div>
 
   <script>
-    // Live update co minutę
+    // Live update
     setInterval(() => {
       if (Math.random() > 0.7) alert("🔴 LIVE UPDATE: Zyski teamów właśnie wzrosły (+0.4% średnio)");
     }, 60000);
@@ -66,7 +66,6 @@
       doc.text("GROKFACTORY RAPORT", 20, 30);
       doc.setFontSize(12);
       doc.text("60+ agentów • " + new Date().toLocaleDateString('pl-PL'), 20, 50);
-      doc.text("Zyski live + backtest", 20, 60);
       doc.save("GrokFactory_Raport.pdf");
       alert("✅ Raport PDF zapisany!");
     }
@@ -85,17 +84,14 @@
       `;
     }
 
-    const allTeams = {
-      "Crypto Warriors": Array.from({length:15}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(4.2+i*0.5).toFixed(1)}%`})),
-      "Arbitrage Elite": Array.from({length:15}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(5.1+i*0.4).toFixed(1)}%`})),
-      "Weather Prophets": Array.from({length:10}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(3.8+i*0.3).toFixed(1)}%`})),
-      "Politics Pulse": Array.from({length:10}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(4.5+i*0.4).toFixed(1)}%`})),
-      "Sports Bet Masters": Array.from({length:10}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(5.3+i*0.5).toFixed(1)}%`})),
-      "Memecoin Hunters": Array.from({length:10}, (_,i) => ({name:`Agent-${i+1}`, profit:`+${(6.1+i*0.6).toFixed(1)}%`}))
-    };
+    const teamNames = ["Crypto Warriors", "Arbitrage Elite", "Weather Prophets", "Politics Pulse", "Sports Bet Masters", "Memecoin Hunters"];
 
     function openTeam(team) {
-      const agents = allTeams[team] || [];
+      const agents = Array.from({length: 10}, (_, i) => ({
+        name: `Agent-${i+1}`,
+        profit: `+${(4.2 + i*0.5).toFixed(1)}%`
+      }));
+
       let html = `<h2 class="text-4xl neon mb-8 text-center">${team}</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
 
       agents.forEach(agent => {
@@ -103,9 +99,9 @@
           <div class="agent-card p-8 rounded-3xl flex flex-col">
             <div class="flex-1">
               <h3 class="text-3xl">${agent.name}</h3>
-              <p class="text-6xl text-green-400 mt-6">${agent.profit}</p>
+              <p class="text-6xl text-green-400">${agent.profit}</p>
             </div>
-            <button onclick="openAgentDetail('${team}', '${agent.name}')" class="mt-10 bg-green-600 hover:bg-green-500 py-5 rounded-2xl font-bold">
+            <button onclick="openAgentDetail('${team}', '${agent.name}')" class="mt-8 bg-green-600 hover:bg-green-500 py-5 rounded-2xl font-bold">
               SZCZEGÓŁY + TRANSAKCJE
             </button>
           </div>
