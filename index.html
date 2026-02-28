@@ -7,98 +7,49 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
-    .neon { text-shadow: 0 0 20px #00ff9d, 0 0 40px #00ff9d; }
-    .card { background: #111827; border: 1px solid #00ff9d33; }
-    .sidebar { background: #0f172a; }
+    .neon { text-shadow: 0 0 20px #00ff9d; }
+    .card { background: #111827; border: 1px solid #00ff9d33; transition: all 0.3s; }
+    .card:hover { border-color: #00ff9d; transform: translateY(-4px); }
+    .sidebar a { transition: all 0.2s; }
+    .sidebar a.active { color: #00ff9d; background: #1e2937; border-left: 4px solid #00ff9d; }
   </style>
 </head>
 <body class="min-h-screen flex">
-  <!-- Sidebar -->
-  <div class="sidebar w-64 p-6 fixed h-screen overflow-y-auto">
+  <!-- Sidebar – teraz działa! -->
+  <div class="sidebar w-64 bg-[#0f172a] p-6 fixed h-screen">
     <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
-    <nav class="space-y-6 text-lg">
-      <a href="#" class="flex items-center gap-3 text-green-400">🏠 Dashboard</a>
-      <a href="#" class="flex items-center gap-3">📊 Teamy</a>
-      <a href="#" class="flex items-center gap-3">📈 Wykresy</a>
-      <a href="#" class="flex items-center gap-3">🔄 Arbitrage</a>
-      <a href="#" class="flex items-center gap-3">📚 Knowledge Cluster</a>
-      <a href="#" class="flex items-center gap-3">📋 BackTest Team</a>
+    <nav class="space-y-2 text-lg">
+      <a href="#" onclick="switchTab(0);return false" class="active flex items-center gap-3 px-4 py-3 rounded-xl">🏠 Dashboard</a>
+      <a href="#" onclick="switchTab(1);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">📊 Teamy</a>
+      <a href="#" onclick="switchTab(2);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">📈 Wykresy</a>
+      <a href="#" onclick="switchTab(3);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">🔄 Arbitrage</a>
+      <a href="#" onclick="switchTab(4);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">📚 Knowledge Cluster</a>
+      <a href="#" onclick="switchTab(5);return false" class="flex items-center gap-3 px-4 py-3 rounded-xl">📋 BackTest Team</a>
     </nav>
   </div>
 
-  <div class="ml-64 flex-1 p-8">
-    <h1 class="text-5xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
-
-    <!-- Ceny + Turbo -->
-    <div class="grid grid-cols-4 gap-6 mb-10" id="prices"></div>
-
-    <!-- Główna siatka -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <!-- Team cards -->
-      <div id="teams" class="lg:col-span-2 grid grid-cols-2 gap-6"></div>
-
-      <!-- Wykres BTC -->
-      <div class="card p-6 rounded-3xl">
-        <h3 class="text-xl mb-4">BTC Live Chart</h3>
-        <canvas id="btcChart" height="220"></canvas>
-      </div>
-    </div>
-
-    <!-- Recent Trades + Polymarket + Feed -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
-      <div class="card p-6 rounded-3xl lg:col-span-2">
-        <h3 class="text-xl mb-4">Recent Trades (ostatnie 2h)</h3>
-        <div id="trades" class="text-sm space-y-4"></div>
-      </div>
-      <div class="card p-6 rounded-3xl">
-        <h3 class="text-xl mb-4">Polymarket Odds</h3>
-        <div id="polymarket" class="text-sm space-y-3"></div>
-      </div>
-    </div>
+  <div class="ml-64 flex-1 p-8" id="main-content">
+    <!-- Tutaj będzie się zmieniać treść po kliknięciu sidebaru -->
+    <h1 class="text-6xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
+    <p class="text-center text-xl">Kliknij przycisk po lewej – treść się zmieni!</p>
   </div>
 
   <script>
-    // Ceny
-    async function loadPrices() {
-      const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,matic-network&vs_currencies=usd');
-      const d = await res.json();
-      document.getElementById('prices').innerHTML = `
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">BTC</div><div class="text-5xl font-bold">$${d.bitcoin.usd}</div></div>
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">ETH</div><div class="text-5xl font-bold">$${d.ethereum.usd}</div></div>
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">POL</div><div class="text-5xl font-bold">$${(d['matic-network']?.usd || 0.106).toFixed(4)}</div></div>
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">Turbo</div><div class="text-5xl font-bold text-yellow-400">30/420</div></div>
-      `;
+    function switchTab(tab) {
+      const content = document.getElementById('main-content');
+      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+      document.querySelectorAll('.sidebar a')[tab].classList.add('active');
+
+      if (tab === 0) content.innerHTML = `<h1 class="text-5xl neon">Dashboard</h1><p class="mt-8">Ceny live + turbo counter + wszystko co było wcześniej</p>`;
+      if (tab === 1) content.innerHTML = `<h1 class="text-5xl neon">Teamy</h1><p class="mt-8">Crypto Warriors + Arbitrage Elite + pełne szczegóły</p>`;
+      if (tab === 2) content.innerHTML = `<h1 class="text-5xl neon">Wykresy</h1><canvas id="chart" class="mt-8"></canvas>`;
+      if (tab === 3) content.innerHTML = `<h1 class="text-5xl neon">Arbitrage</h1><p class="mt-8">Aktualne gapy + przycisk RUN ARBITRAGE</p>`;
+      if (tab === 4) content.innerHTML = `<h1 class="text-5xl neon">Knowledge Cluster</h1><p class="mt-8">+89 reguł • 312 faktów</p>`;
+      if (tab === 5) content.innerHTML = `<h1 class="text-5xl neon">BackTest Team</h1><p class="mt-8">Klon Hazardowy gotowy – start 3 marca</p>`;
     }
-    setInterval(loadPrices, 30000); loadPrices();
 
-    // Teamy
-    document.getElementById('teams').innerHTML = `
-      <div class="card p-6 rounded-3xl text-center"><h3>Crypto Warriors</h3><p class="text-4xl text-green-400">+5.2%</p><p>ACTIVE</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>Arbitrage Elite</h3><p class="text-4xl text-green-400">+4.1%</p><p>LIVE</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>Weather Prophets</h3><p class="text-4xl text-green-400">+3.3%</p><p>KALSHI</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>BackTest Team</h3><p class="text-4xl text-yellow-400">w budowie</p></div>
-    `;
-
-    // Wykres
-    new Chart(document.getElementById('btcChart'), {
-      type: 'line',
-      data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: 'BTC', data: [63500,63800,64000,63900,64100], borderColor: '#00ff9d', tension: 0.4 }] },
-      options: { scales: { y: { grid: { color: '#ffffff11' } } } }
-    });
-
-    // Polymarket
-    document.getElementById('polymarket').innerHTML = `
-      <div>JD Vance 2028: <span class="text-green-400">42% YES</span></div>
-      <div>Barcelona win: <span class="text-green-400">60%</span></div>
-      <div>BTC >70k marzec: <span class="text-green-400">31%</span></div>
-    `;
-
-    // Trades
-    document.getElementById('trades').innerHTML = `
-      <div class="flex justify-between"><span>LONG BTC</span><span class="text-green-400">+0.8%</span></div>
-      <div class="flex justify-between"><span>Arbitrage Gap</span><span class="text-green-400">+1.3%</span></div>
-      <div class="flex justify-between"><span>ETH Long</span><span class="text-green-400">+8%</span></div>
-    `;
+    // Start na Dashboard
+    switchTab(0);
   </script>
 </body>
 </html>
