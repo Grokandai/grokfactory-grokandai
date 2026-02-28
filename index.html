@@ -25,15 +25,14 @@
     <div class="bg-zinc-900 p-8 rounded-3xl max-w-7xl w-full max-h-[95vh] overflow-y-auto">
       <h2 id="team-title" class="text-4xl neon mb-8 text-center"></h2>
       <div id="team-agents" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      <button onclick="closeModal()" class="mt-10 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
+      <button onclick="closeTeamModal()" class="mt-10 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
     </div>
   </div>
 
-  <!-- Modal agenta (transakcje + wykres) -->
+  <!-- Modal agenta -->
   <div id="agent-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
     <div class="bg-zinc-900 p-8 rounded-3xl max-w-6xl w-full max-h-[95vh] overflow-y-auto">
       <h2 id="agent-title" class="text-4xl neon mb-8"></h2>
-      
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div class="card p-6 rounded-3xl" id="agent-stats"></div>
         <div class="card p-6 rounded-3xl">
@@ -41,12 +40,10 @@
           <canvas id="equityChart" class="h-80"></canvas>
         </div>
       </div>
-
       <div class="card p-6 rounded-3xl mt-8">
         <h3 class="text-xl mb-4">Wszystkie transakcje</h3>
         <div id="transactions" class="space-y-3"></div>
       </div>
-
       <button onclick="closeAgentModal()" class="mt-10 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
     </div>
   </div>
@@ -65,20 +62,17 @@
     }
 
     function openTeam(team) {
-      const agents = Array.from({length: 6}, (_, i) => ({
-        name: `Agent-${i+1}`,
-        profit: `+${(4.5 + i*0.8).toFixed(1)}%`
-      }));
+      const agents = Array.from({length: 6}, (_, i) => ({ name: `Agent-${i+1}`, profit: `+${(4.5 + i*0.8).toFixed(1)}%` }));
 
       let html = '';
       agents.forEach(agent => {
         html += `
           <div class="agent-card p-8 rounded-3xl flex flex-col">
             <div class="flex-1">
-              <h3 class="text-3xl mb-4">${agent.name}</h3>
+              <h3 class="text-3xl">${agent.name}</h3>
               <p class="text-6xl text-green-400">${agent.profit}</p>
             </div>
-            <button onclick="openAgentDetail('${team}', '${agent.name}')" class="mt-8 bg-green-600 hover:bg-green-500 py-5 rounded-2xl font-bold">
+            <button onclick="openAgent('${team}', '${agent.name}')" class="mt-8 bg-green-600 hover:bg-green-500 py-5 rounded-2xl font-bold">
               SZCZEGÓŁY + TRANSAKCJE
             </button>
           </div>
@@ -90,11 +84,11 @@
       document.getElementById('team-modal').classList.remove('hidden');
     }
 
-    function openAgentDetail(team, agentName) {
+    function openAgent(team, agentName) {
       document.getElementById('agent-title').innerHTML = `${team} • ${agentName}`;
 
       document.getElementById('agent-stats').innerHTML = `
-        <div class="text-lg space-y-4">
+        <div class="space-y-4 text-lg">
           <div>Zysk: <span class="text-green-400">+6.7%</span></div>
           <div>Straty: <span class="text-red-400">-0.5%</span></div>
           <div>Skuteczność: <span class="text-green-400">94%</span></div>
@@ -104,35 +98,28 @@
         </div>
       `;
 
-      // Transakcje
-      const trans = [
-        {time:"10:15", asset:"BTC", type:"LONG", profit:"+2.4%"},
-        {time:"11:30", asset:"ETH", type:"SHORT", profit:"-0.8%"},
-        {time:"13:00", asset:"POL", type:"LONG", profit:"+1.9%"},
-        {time:"14:45", asset:"BTC", type:"LONG", profit:"+3.1%"}
-      ];
-      document.getElementById('transactions').innerHTML = trans.map(t => `
-        <div class="flex justify-between bg-black p-4 rounded-2xl">
-          <span>${t.time} ${t.asset} ${t.type}</span>
-          <span class="${t.profit.startsWith('+') ? 'text-green-400' : 'text-red-400'}">${t.profit}</span>
-        </div>
-      `).join('');
+      document.getElementById('transactions').innerHTML = `
+        <div class="bg-black p-4 rounded-2xl flex justify-between"><span>10:15 BTC LONG</span><span class="text-green-400">+2.4%</span></div>
+        <div class="bg-black p-4 rounded-2xl flex justify-between"><span>11:30 ETH SHORT</span><span class="text-red-400">-0.8%</span></div>
+        <div class="bg-black p-4 rounded-2xl flex justify-between"><span>13:00 POL LONG</span><span class="text-green-400">+1.9%</span></div>
+      `;
 
       document.getElementById('team-modal').classList.add('hidden');
       document.getElementById('agent-modal').classList.remove('hidden');
 
-      // Wykres
       setTimeout(() => {
         new Chart(document.getElementById('equityChart'), {
           type: 'line',
-          data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: agentName, data: [0,2.4,5.9,4.8,8.7], borderColor: '#00ff9d', borderWidth: 5, tension: 0.4 }] },
-          options: { animation: { duration: 2500 } }
+          data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: agentName, data: [0,2.4,5.9,4.8,8.7], borderColor: '#00ff9d', borderWidth: 5 }] }
         });
       }, 300);
     }
 
-    function closeModal() {
+    function closeTeamModal() {
       document.getElementById('team-modal').classList.add('hidden');
+    }
+
+    function closeAgentModal() {
       document.getElementById('agent-modal').classList.add('hidden');
     }
 
