@@ -10,90 +10,118 @@
     .neon { text-shadow: 0 0 20px #00ff9d; }
     .card { background: #111827; border: 1px solid #00ff9d33; transition: all 0.3s; }
     .card:hover { border-color: #00ff9d; transform: translateY(-4px); }
-    .sidebar { background: #0f172a; }
+    .sidebar a { transition: all 0.3s; }
+    .sidebar a.active { background: #1e2937; border-left: 4px solid #00ff9d; color: white; }
   </style>
 </head>
 <body class="min-h-screen flex">
   <!-- Sidebar -->
-  <div class="sidebar w-64 p-6 fixed h-screen">
+  <div class="w-64 bg-[#0f172a] p-6 fixed h-screen">
     <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
-    <nav class="space-y-6 text-lg">
-      <a href="#" class="flex items-center gap-3 text-green-400">🏠 Dashboard</a>
-      <a href="#" class="flex items-center gap-3">📊 Teamy</a>
-      <a href="#" class="flex items-center gap-3">📈 Wykresy</a>
-      <a href="#" class="flex items-center gap-3">🔄 Arbitrage</a>
-      <a href="#" class="flex items-center gap-3">📚 Knowledge Cluster</a>
-      <a href="#" class="flex items-center gap-3">📋 BackTest Team</a>
+    <nav class="space-y-2 text-lg">
+      <a href="#" onclick="switchTab(0)" class="active flex items-center gap-3 px-4 py-3 rounded-xl">🏠 Dashboard</a>
+      <a href="#" onclick="switchTab(1)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📊 Teamy</a>
+      <a href="#" onclick="switchTab(2)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📈 Wykresy</a>
+      <a href="#" onclick="switchTab(3)" class="flex items-center gap-3 px-4 py-3 rounded-xl">🔄 Arbitrage</a>
+      <a href="#" onclick="switchTab(4)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📚 Knowledge Cluster</a>
+      <a href="#" onclick="switchTab(5)" class="flex items-center gap-3 px-4 py-3 rounded-xl">📋 BackTest Team</a>
     </nav>
   </div>
 
-  <div class="ml-64 flex-1 p-8">
-    <h1 class="text-6xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
+  <div class="ml-64 flex-1 p-8" id="main-content"></div>
 
-    <!-- Ceny -->
-    <div class="grid grid-cols-3 gap-6 mb-10" id="prices"></div>
-
-    <!-- Teamy -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12" id="teams"></div>
-
-    <!-- Wykres + Recent Trades + Polymarket -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      <div class="card p-6 rounded-3xl lg:col-span-2">
-        <h3 class="text-xl mb-4">BTC Live Chart</h3>
-        <canvas id="btcChart" height="220"></canvas>
-      </div>
-      <div class="card p-6 rounded-3xl">
-        <h3 class="text-xl mb-4">Recent Trades</h3>
-        <div id="trades" class="text-sm space-y-3"></div>
-      </div>
-      <div class="card p-6 rounded-3xl">
-        <h3 class="text-xl mb-4">Polymarket Odds</h3>
-        <div id="polymarket" class="text-sm space-y-3"></div>
-      </div>
+  <!-- Modal szczegółów teamu / agenta -->
+  <div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
+    <div class="bg-zinc-900 p-8 rounded-3xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <h2 id="modal-title" class="text-4xl neon mb-6"></h2>
+      <div id="modal-content"></div>
+      <button onclick="closeModal()" class="mt-8 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
     </div>
   </div>
 
   <script>
-    // Ceny live
-    async function loadPrices() {
-      const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,matic-network&vs_currencies=usd');
-      const d = await res.json();
-      document.getElementById('prices').innerHTML = `
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">BTC</div><div class="text-5xl font-bold">$${d.bitcoin.usd}</div></div>
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">ETH</div><div class="text-5xl font-bold">$${d.ethereum.usd}</div></div>
-        <div class="card p-6 rounded-3xl text-center"><div class="text-3xl">POL</div><div class="text-5xl font-bold">$${(d['matic-network']?.usd || 0.106).toFixed(4)}</div></div>
-      `;
+    function switchTab(tab) {
+      document.querySelectorAll('.sidebar a').forEach(a => a.classList.remove('active'));
+      document.querySelectorAll('.sidebar a')[tab].classList.add('active');
+
+      const content = document.getElementById('main-content');
+
+      if (tab === 0) {
+        content.innerHTML = `<h1 class="text-6xl font-bold neon mb-8">Dashboard</h1><p class="text-xl">Wybierz team z menu po lewej aby zobaczyć szczegóły agentów</p>`;
+      }
+      if (tab === 1) {
+        content.innerHTML = `
+          <h1 class="text-6xl font-bold neon mb-8">Teamy</h1>
+          <div class="grid grid-cols-2 gap-6" id="team-list"></div>
+        `;
+        renderTeamList();
+      }
     }
-    setInterval(loadPrices, 30000); loadPrices();
 
-    // Teamy
-    document.getElementById('teams').innerHTML = `
-      <div class="card p-6 rounded-3xl text-center"><h3>Crypto Warriors</h3><p class="text-4xl text-green-400">+5.2%</p><p>ACTIVE</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>Arbitrage Elite</h3><p class="text-4xl text-green-400">+4.1%</p><p>LIVE</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>Weather Prophets</h3><p class="text-4xl text-green-400">+3.3%</p><p>KALSHI ON</p></div>
-      <div class="card p-6 rounded-3xl text-center"><h3>BackTest Team</h3><p class="text-4xl text-yellow-400">w budowie</p></div>
-    `;
+    const teamData = {
+      "Crypto Warriors": { agents: [
+        {name: "Agent-1", profit: "+8.4%", loss: "-1.2%", effectiveness: "87%", positions: "14"},
+        {name: "Agent-2", profit: "+4.1%", loss: "-0.9%", effectiveness: "79%", positions: "9"}
+      ]},
+      "Arbitrage Elite": { agents: [
+        {name: "Agent-1", profit: "+6.7%", loss: "0%", effectiveness: "94%", positions: "47"}
+      ]},
+      "Weather Prophets": { agents: [
+        {name: "Agent-3", profit: "+3.9%", loss: "-2.1%", effectiveness: "68%", positions: "11"}
+      ]},
+      "BackTest Team": { agents: [] }
+    };
 
-    // Wykres BTC
-    new Chart(document.getElementById('btcChart'), {
-      type: 'line',
-      data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: 'BTC', data: [63500,63800,64000,63900,64100], borderColor: '#00ff9d', tension: 0.4 }] },
-      options: { scales: { y: { grid: { color: '#ffffff11' } } } }
-    });
+    function renderTeamList() {
+      let html = "";
+      Object.keys(teamData).forEach(team => {
+        html += `<div onclick="showTeamModal('${team}')" class="card p-8 rounded-3xl text-center cursor-pointer">
+          <h3 class="text-2xl">${team}</h3>
+          <p class="text-4xl text-green-400 mt-4">+4.1% średnio</p>
+        </div>`;
+      });
+      document.getElementById('team-list').innerHTML = html;
+    }
 
-    // Recent Trades
-    document.getElementById('trades').innerHTML = `
-      <div>LONG BTC @ $64,011 → +0.8%</div>
-      <div>Arbitrage Gap → +1.3%</div>
-      <div>ETH Long → +8%</div>
-    `;
+    function showTeamModal(team) {
+      const data = teamData[team];
+      let agentsHTML = data.agents.map(a => `
+        <div class="card p-6 rounded-2xl mb-4">
+          <div class="flex justify-between">
+            <span class="text-xl">${a.name}</span>
+            <span class="text-green-400 text-2xl">${a.profit}</span>
+          </div>
+          <div class="grid grid-cols-3 gap-4 mt-6 text-sm">
+            <div>Straty: <span class="text-red-400">${a.loss}</span></div>
+            <div>Skuteczność: <span class="text-green-400">${a.effectiveness}</span></div>
+            <div>Pozycje: <span>${a.positions}</span></div>
+          </div>
+          <canvas id="agentChart${a.name}" class="mt-6"></canvas>
+        </div>
+      `).join('');
 
-    // Polymarket
-    document.getElementById('polymarket').innerHTML = `
-      <div>JD Vance 2028: <span class="text-green-400">42% YES</span></div>
-      <div>Barcelona win: <span class="text-green-400">60%</span></div>
-      <div>BTC >70k marzec: <span class="text-green-400">31%</span></div>
-    `;
+      document.getElementById('modal-title').textContent = team;
+      document.getElementById('modal-content').innerHTML = agentsHTML;
+      document.getElementById('modal').classList.remove('hidden');
+
+      // Animowane wykresy dla każdego agenta
+      setTimeout(() => {
+        data.agents.forEach(a => {
+          new Chart(document.getElementById(`agentChart${a.name}`), {
+            type: 'line',
+            data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: a.name, data: [0,2.1,5.8,4.2,7.9], borderColor: '#00ff9d', tension: 0.4 }] },
+            options: { animation: { duration: 2000 } }
+          });
+        });
+      }, 300);
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.add('hidden');
+    }
+
+    // Start
+    switchTab(1);
   </script>
 </body>
 </html>
