@@ -8,7 +8,7 @@
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
     .neon { text-shadow: 0 0 20px #00ff9d; }
-    .card { background: #111827; border: 1px solid #00ff9d33; }
+    .card { background: #111827; border: 1px solid #00ff9d33; transition: all 0.3s; }
     .card:hover { border-color: #00ff9d; transform: translateY(-4px); }
   </style>
 </head>
@@ -17,14 +17,13 @@
   <div class="w-64 bg-[#0f172a] p-6 fixed h-screen">
     <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
     <nav class="space-y-6 text-lg">
-      <a href="#" onclick="showDashboard()" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1e2937]">🏠 Dashboard</a>
-      <a href="#" onclick="showTeams()" class="flex items-center gap-3 px-4 py-3 rounded-xl">📊 Teamy</a>
+      <a href="#" onclick="showTeams()" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1e2937]">📊 Teamy</a>
     </nav>
   </div>
 
   <div class="ml-64 flex-1 p-8" id="main">
     <h1 class="text-6xl font-bold neon mb-8">GROKFACTORY • GROKANDAI</h1>
-    <p class="text-xl">Kliknij „Teamy” po lewej, żeby zobaczyć pracę każdego agenta na żywo.</p>
+    <p class="text-xl">Kliknij „Teamy” po lewej → wybierz team → zobacz każdego agenta z pełnymi danymi</p>
   </div>
 
   <!-- Modal -->
@@ -37,10 +36,6 @@
   </div>
 
   <script>
-    function showDashboard() {
-      document.getElementById('main').innerHTML = `<h1 class="text-6xl font-bold neon">Dashboard</h1>`;
-    }
-
     function showTeams() {
       document.getElementById('main').innerHTML = `
         <h1 class="text-6xl font-bold neon mb-8">Teamy</h1>
@@ -55,14 +50,14 @@
 
     const teamAgents = {
       "Crypto Warriors": [
-        {name:"Agent-1", profit:"+8.4%", loss:"-1.2%", eff:"87%", pos:"14"},
-        {name:"Agent-2", profit:"+4.1%", loss:"-0.9%", eff:"79%", pos:"9"}
+        {name:"Agent-1", profit:"+8.4%", loss:"-1.2%", eff:"87%", pos:"14", drawdown:"-4.2%", burned:"0 razy"},
+        {name:"Agent-2", profit:"+4.1%", loss:"-0.9%", eff:"79%", pos:"9", drawdown:"-2.8%", burned:"1 raz"}
       ],
       "Arbitrage Elite": [
-        {name:"Agent-1", profit:"+6.7%", loss:"0%", eff:"94%", pos:"47"}
+        {name:"Agent-1", profit:"+6.7%", loss:"0%", eff:"94%", pos:"47", drawdown:"-0.5%", burned:"0 razy"}
       ],
       "Weather Prophets": [
-        {name:"Agent-3", profit:"+3.9%", loss:"-2.1%", eff:"68%", pos:"11"}
+        {name:"Agent-3", profit:"+3.9%", loss:"-2.1%", eff:"68%", pos:"11", drawdown:"-5.1%", burned:"0 razy"}
       ],
       "BackTest Team": []
     };
@@ -74,16 +69,18 @@
       agents.forEach(agent => {
         html += `
           <div class="card p-6 rounded-3xl mb-6">
-            <div class="flex justify-between items-center">
-              <span class="text-2xl">${agent.name}</span>
-              <span class="text-4xl text-green-400">${agent.profit}</span>
+            <div class="flex justify-between items-center mb-6">
+              <span class="text-3xl">${agent.name}</span>
+              <span class="text-5xl text-green-400">${agent.profit}</span>
             </div>
-            <div class="grid grid-cols-3 gap-6 mt-6 text-sm">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
               <div>Straty: <span class="text-red-400">${agent.loss}</span></div>
               <div>Skuteczność: <span class="text-green-400">${agent.eff}</span></div>
-              <div>Pozycje: <span>${agent.pos}</span></div>
+              <div>Pozycje: <span class="font-bold">${agent.pos}</span></div>
+              <div>Max Drawdown: <span class="text-red-400">${agent.drawdown}</span></div>
+              <div class="col-span-2 md:col-span-4">Spalił konto: <span class="text-yellow-400">${agent.burned}</span></div>
             </div>
-            <canvas id="chart-${agent.name}" class="mt-6"></canvas>
+            <canvas id="chart-${agent.name}" class="mt-8"></canvas>
           </div>
         `;
       });
@@ -97,14 +94,11 @@
         agents.forEach(agent => {
           new Chart(document.getElementById(`chart-${agent.name}`), {
             type: 'line',
-            data: { 
-              labels: ['10:00','11:00','12:00','13:00','14:00'], 
-              datasets: [{ label: agent.name, data: [0, 2.3, 5.8, 4.1, 7.9], borderColor: '#00ff9d', tension: 0.4 }] 
-            },
+            data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: agent.name, data: [0,2.1,5.8,4.2,8.4], borderColor: '#00ff9d', tension: 0.4 }] },
             options: { animation: { duration: 2500 } }
           });
         });
-      }, 500);
+      }, 300);
     }
 
     function closeModal() {
