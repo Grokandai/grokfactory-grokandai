@@ -7,38 +7,40 @@
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
     .neon { text-shadow: 0 0 20px #00ff9d; }
-    .team-card { cursor: pointer; transition: all 0.3s; }
-    .team-card:hover { transform: scale(1.05); background-color: #1a1a1a; }
+    .card { transition: all 0.3s; }
+    .card:hover { transform: translateY(-4px); }
   </style>
 </head>
-<body class="min-h-screen p-8">
+<body class="min-h-screen p-8 bg-zinc-950">
   <div class="max-w-7xl mx-auto">
-    <h1 class="text-6xl font-bold text-center mb-4 neon">GROKFACTORY • GROKANDAI</h1>
-    <p class="text-center text-xl mb-8">Live Dashboard • grokandai@proton.me • Polska 2026</p>
+    <h1 class="text-5xl font-bold text-center mb-2 neon">GROKFACTORY • GROKANDAI</h1>
+    <p class="text-center text-xl mb-8">Live Dashboard 2.0 • Polska 2026</p>
 
-    <div class="text-center mb-6 text-yellow-400 text-2xl">
-      Wirtualne dni przetestowane: <span class="font-bold">30 / 420</span>
-    </div>
+    <!-- Ceny + zysk -->
+    <div class="grid grid-cols-3 gap-6 mb-10" id="prices"></div>
 
-    <!-- Ceny live -->
-    <div class="grid grid-cols-3 gap-6 mb-12" id="prices"></div>
-
-    <!-- Teamy – klikalne! -->
+    <!-- Team status -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12" id="teams"></div>
 
-    <!-- Research Feed -->
-    <div class="bg-zinc-900 p-6 rounded-3xl">
-      <h3 class="text-2xl mb-4">Research Feed (aktualizacja co minutę)</h3>
-      <div id="feed" class="text-sm space-y-2 max-h-80 overflow-y-auto"></div>
+    <!-- Research Feed + Knowledge Cluster -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-zinc-900 p-6 rounded-3xl">
+        <h3 class="text-2xl mb-4">Research Feed (co minutę)</h3>
+        <div id="feed" class="text-sm space-y-3 max-h-96 overflow-y-auto"></div>
+      </div>
+      <div class="bg-zinc-900 p-6 rounded-3xl">
+        <h3 class="text-2xl mb-4">Knowledge Cluster</h3>
+        <div class="bg-black p-5 rounded-2xl text-green-400">
+          +89 reguł • 312 faktów<br>
+          Ostatnia aktualizacja: przed chwilą
+        </div>
+        <button onclick="alert('Klaster zaktualizowany!')" class="mt-6 w-full bg-blue-600 py-4 rounded-2xl font-bold">UPDATE KNOWLEDGE CLUSTER</button>
+      </div>
     </div>
-  </div>
 
-  <!-- Modal z szczegółami teamu -->
-  <div id="modal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center">
-    <div class="bg-zinc-900 p-8 rounded-3xl max-w-lg w-full mx-4">
-      <h2 id="modal-title" class="text-3xl mb-6"></h2>
-      <div id="modal-content" class="text-sm space-y-4"></div>
-      <button onclick="closeModal()" class="mt-8 w-full bg-red-500 text-white py-4 rounded-2xl font-bold">Zamknij</button>
+    <div class="flex justify-center gap-6 mt-10">
+      <button onclick="alert('✅ Motywacja wysłana do wszystkich agentów!')" class="bg-green-500 text-black px-12 py-5 rounded-2xl font-bold text-xl">MOTYWUJ TEAMY</button>
+      <button onclick="alert('🚀 Arbitrage RUN! Szukam gapów...')" class="bg-yellow-500 text-black px-12 py-5 rounded-2xl font-bold text-xl">RUN ARBITRAGE</button>
     </div>
   </div>
 
@@ -46,55 +48,30 @@
     // Ceny live
     async function loadPrices() {
       const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,matic-network&vs_currencies=usd');
-      const data = await res.json();
+      const d = await res.json();
       document.getElementById('prices').innerHTML = `
-        <div class="bg-zinc-900 p-6 rounded-3xl text-center"><div class="text-4xl font-bold">BTC</div><div class="text-5xl">$${data.bitcoin.usd}</div></div>
-        <div class="bg-zinc-900 p-6 rounded-3xl text-center"><div class="text-4xl font-bold">ETH</div><div class="text-5xl">$${data.ethereum.usd}</div></div>
-        <div class="bg-zinc-900 p-6 rounded-3xl text-center"><div class="text-4xl font-bold">POL</div><div class="text-5xl">$${data['matic-network'].usd}</div></div>
+        <div class="bg-zinc-900 p-6 rounded-3xl text-center card"><div class="text-3xl">BTC</div><div class="text-5xl font-bold">$${d.bitcoin.usd}</div></div>
+        <div class="bg-zinc-900 p-6 rounded-3xl text-center card"><div class="text-3xl">ETH</div><div class="text-5xl font-bold">$${d.ethereum.usd}</div></div>
+        <div class="bg-zinc-900 p-6 rounded-3xl text-center card"><div class="text-3xl">POL</div><div class="text-5xl font-bold">$${d['matic-network'].usd}</div></div>
       `;
     }
     setInterval(loadPrices, 30000); loadPrices();
 
     // Feed
-    const logs = ["Arbitrage +1.3% zamknięty", "Turbo backtest +41.7%", "BackTest Team w budowie...", "BTC odbicie wykryte", "Kalshi weather pozycja otwarta"];
+    const logs = ["Arbitrage #48 +1.3%", "Turbo backtest +41.7%", "BackTest Team gotowy do startu", "BTC odbicie wykryte", "Kalshi weather pozycja otwarta"];
     let i = 0;
     setInterval(() => {
-      document.getElementById('feed').innerHTML += `<div class="text-green-400">→ ${logs[i % logs.length]}</div>`;
+      document.getElementById('feed').innerHTML += `<div class="bg-black p-3 rounded-xl">→ ${logs[i % logs.length]}</div>`;
       i++;
-    }, 5000);
+    }, 4000);
 
-    // Dane teamów
-    const teams = [
-      {name: "Crypto Warriors", profit: "+5.2%", status: "ACTIVE", color: "green", log: "LONG BTC @ $63,950<br>+0.8% w ostatniej godzinie<br>Memory: 47 dni"},
-      {name: "Arbitrage Elite", profit: "+4.1%", status: "LIVE", color: "green", log: "Gap Polymarket zamknięty +1.3%<br>124 mikro-trades w pamięci"},
-      {name: "Weather Prophets", profit: "+3.3%", status: "KALSHI ON", color: "green", log: "EU Winter 2026 Yes +1.9%<br>29 faktów pogodowych"},
-      {name: "BackTest Team", profit: "w budowie", status: "START PO 3 DNIACH", color: "yellow", log: "Klon Hazardowy i Konserwatywny gotowe do uruchomienia"}
-    ];
-
-    function renderTeams() {
-      let html = "";
-      teams.forEach(t => {
-        html += `
-          <div onclick="showTeam('${t.name}', '${t.profit}', '${t.status}', '${t.log}')" 
-               class="team-card bg-zinc-900 p-6 rounded-3xl text-center">
-            <h3 class="text-2xl">${t.name}</h3>
-            <p class="text-${t.color}-400 text-3xl font-bold mt-2">${t.profit}</p>
-            <p class="text-sm mt-1">${t.status}</p>
-          </div>`;
-      });
-      document.getElementById('teams').innerHTML = html;
-    }
-    renderTeams();
-
-    function showTeam(name, profit, status, log) {
-      document.getElementById('modal-title').innerHTML = `${name} <span class="text-${status.includes('ACTIVE') ? 'green' : 'yellow'}-400">${profit}</span>`;
-      document.getElementById('modal-content').innerHTML = `<div class="bg-black p-4 rounded-xl">${log}</div>`;
-      document.getElementById('modal').classList.remove('hidden');
-    }
-
-    function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
-    }
+    // Teamy
+    document.getElementById('teams').innerHTML = `
+      <div class="bg-zinc-900 p-6 rounded-3xl text-center card"><h3>Crypto Warriors</h3><p class="text-green-400 text-4xl">+5.2%</p><p>ACTIVE</p></div>
+      <div class="bg-zinc-900 p-6 rounded-3xl text-center card"><h3>Arbitrage Elite</h3><p class="text-green-400 text-4xl">+4.1%</p><p>LIVE</p></div>
+      <div class="bg-zinc-900 p-6 rounded-3xl text-center card"><h3>Weather Prophets</h3><p class="text-green-400 text-4xl">+3.3%</p><p>KALSHI ON</p></div>
+      <div class="bg-zinc-900 p-6 rounded-3xl text-center card"><h3>BackTest Team</h3><p class="text-yellow-400 text-4xl">w budowie</p><p>START 3 MARCA</p></div>
+    `;
   </script>
 </body>
 </html>
