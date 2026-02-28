@@ -4,95 +4,154 @@
   <meta charset="UTF-8">
   <title>GrokFactory • grokandai</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body { background: #0a0a0a; color: #00ff9d; font-family: monospace; }
     .neon { text-shadow: 0 0 20px #00ff9d; }
-    .agent-card {
-      background: #111827;
-      border: 1px solid #00ff9d33;
-      height: 100%;
-      transition: all 0.3s;
+    .agent-card { 
+      background: #111827; 
+      border: 1px solid #00ff9d33; 
+      height: 100%; 
+      transition: all 0.3s; 
     }
-    .agent-card:hover {
-      border-color: #00ff9d;
-      transform: translateY(-8px);
-      box-shadow: 0 0 30px #00ff9d44;
+    .agent-card:hover { 
+      border-color: #00ff9d; 
+      transform: translateY(-8px); 
+      box-shadow: 0 0 30px #00ff9d44; 
     }
   </style>
 </head>
 <body class="min-h-screen flex">
-  <!-- Sidebar -->
   <div class="w-64 bg-[#0f172a] p-6 fixed h-screen">
     <h1 class="text-3xl font-bold neon mb-10">GROKFACTORY</h1>
-    <a href="#" onclick="showTeams()" class="block px-4 py-3 rounded-xl bg-[#1e2937] text-xl">📊 Teamy</a>
+    <a href="#" onclick="showTeams()" class="flex items-center gap-3 px-4 py-3 rounded-xl bg-[#1e2937]">📊 Teamy</a>
   </div>
 
-  <div class="ml-64 flex-1 p-8">
-    <h1 class="text-6xl font-bold neon mb-12">GROKFACTORY • GROKANDAI</h1>
+  <div class="ml-64 flex-1 p-8" id="main"></div>
 
-    <div id="main"></div>
-  </div>
-
-  <!-- Modal -->
-  <div id="modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
+  <!-- Modal teamu -->
+  <div id="team-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
     <div class="bg-zinc-900 p-8 rounded-3xl max-w-7xl w-full max-h-[95vh] overflow-y-auto">
-      <h2 id="modal-title" class="text-4xl neon mb-10 text-center"></h2>
-      <div id="modal-agents" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
-      <button onclick="closeModal()" class="mt-12 w-full bg-red-500 py-4 rounded-2xl font-bold text-lg">Zamknij</button>
+      <h2 id="team-title" class="text-4xl neon mb-10 text-center"></h2>
+      <div id="team-agents" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+      <button onclick="closeTeamModal()" class="mt-12 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
+    </div>
+  </div>
+
+  <!-- Modal szczegółów agenta -->
+  <div id="agent-modal" class="hidden fixed inset-0 bg-black/90 flex items-center justify-center">
+    <div class="bg-zinc-900 p-8 rounded-3xl max-w-5xl w-full max-h-[95vh] overflow-y-auto">
+      <h2 id="agent-title" class="text-4xl neon mb-8"></h2>
+      
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Statystyki -->
+        <div class="card p-6 rounded-3xl" id="agent-stats"></div>
+        
+        <!-- Wykres equity -->
+        <div class="card p-6 rounded-3xl">
+          <h3 class="text-xl mb-4">Equity Curve (kumulacyjny zysk)</h3>
+          <canvas id="equityChart" class="h-80"></canvas>
+        </div>
+      </div>
+
+      <!-- Wszystkie transakcje -->
+      <div class="card p-6 rounded-3xl mt-8">
+        <h3 class="text-xl mb-4">Wszystkie transakcje agenta</h3>
+        <div id="transactions" class="space-y-3 max-h-96 overflow-y-auto"></div>
+      </div>
+
+      <button onclick="closeAgentModal()" class="mt-10 w-full bg-red-500 py-4 rounded-2xl font-bold">Zamknij</button>
     </div>
   </div>
 
   <script>
     function showTeams() {
       document.getElementById('main').innerHTML = `
-        <h1 class="text-6xl font-bold neon mb-12">Wybierz team</h1>
+        <h1 class="text-6xl font-bold neon mb-12">Teamy</h1>
         <div class="grid grid-cols-2 gap-8">
-          <div onclick="openTeam('Crypto Warriors')" class="agent-card p-8 rounded-3xl text-center cursor-pointer">
-            <h3 class="text-3xl">Crypto Warriors</h3>
-          </div>
-          <div onclick="openTeam('Arbitrage Elite')" class="agent-card p-8 rounded-3xl text-center cursor-pointer">
-            <h3 class="text-3xl">Arbitrage Elite</h3>
-          </div>
-          <div onclick="openTeam('Weather Prophets')" class="agent-card p-8 rounded-3xl text-center cursor-pointer">
-            <h3 class="text-3xl">Weather Prophets</h3>
-          </div>
-          <div onclick="openTeam('BackTest Team')" class="agent-card p-8 rounded-3xl text-center cursor-pointer">
-            <h3 class="text-3xl">BackTest Team</h3>
-          </div>
+          <div onclick="openTeam('Crypto Warriors')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Crypto Warriors</h3></div>
+          <div onclick="openTeam('Arbitrage Elite')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Arbitrage Elite</h3></div>
+          <div onclick="openTeam('Weather Prophets')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">Weather Prophets</h3></div>
+          <div onclick="openTeam('BackTest Team')" class="agent-card p-8 rounded-3xl text-center cursor-pointer"><h3 class="text-3xl">BackTest Team</h3></div>
         </div>
       `;
     }
 
     function openTeam(team) {
-      document.getElementById('modal-title').innerHTML = team;
-      
       const agents = Array.from({length: 6}, (_, i) => ({
         name: `Agent-${i+1}`,
-        profit: `+${(4.2 + i * 0.8).toFixed(1)}%`
+        profit: `+${(4.5 + i * 0.7).toFixed(1)}%`
       }));
 
-      let html = '';
+      let html = `<h2 class="text-4xl neon mb-10 text-center">${team}</h2><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+
       agents.forEach(agent => {
         html += `
           <div class="agent-card p-8 rounded-3xl flex flex-col">
             <div class="flex-1">
-              <h3 class="text-3xl mb-6">${agent.name}</h3>
-              <p class="text-6xl text-green-400">${agent.profit}</p>
+              <h3 class="text-3xl">${agent.name}</h3>
+              <p class="text-6xl text-green-400 mt-6">${agent.profit}</p>
             </div>
-            <button onclick="alert('Tu będą wszystkie transakcje, wykresy i dane agenta ${agent.name}')" 
-                    class="mt-auto bg-green-600 hover:bg-green-500 py-5 rounded-2xl font-bold text-sm">
+            <button onclick="openAgent('${team}', '${agent.name}')" 
+                    class="mt-10 bg-green-600 hover:bg-green-500 py-5 rounded-2xl font-bold">
               SZCZEGÓŁY + TRANSAKCJE
             </button>
           </div>
         `;
       });
 
-      document.getElementById('modal-agents').innerHTML = html;
-      document.getElementById('modal').classList.remove('hidden');
+      html += `</div>`;
+      document.getElementById('modal-title').innerHTML = team;
+      document.getElementById('team-agents').innerHTML = html;
+      document.getElementById('team-modal').classList.remove('hidden'); // jeśli masz team-modal
+    }
+
+    function openAgent(team, agentName) {
+      // Przykładowe dane
+      const transactions = [
+        {time: "10:15", asset: "BTC", type: "LONG", profit: "+2.4%"},
+        {time: "11:30", asset: "ETH", type: "SHORT", profit: "-0.8%"},
+        {time: "13:00", asset: "POL", type: "LONG", profit: "+1.9%"},
+        {time: "14:45", asset: "BTC", type: "LONG", profit: "+3.1%"},
+        {time: "15:20", asset: "ETH", type: "LONG", profit: "+1.2%"}
+      ];
+
+      let transHTML = transactions.map(t => `
+        <div class="flex justify-between bg-black p-4 rounded-2xl">
+          <span>${t.time} ${t.asset} ${t.type}</span>
+          <span class="${t.profit.startsWith('+') ? 'text-green-400' : 'text-red-400'} font-bold">${t.profit}</span>
+        </div>
+      `).join('');
+
+      document.getElementById('agent-title').innerHTML = `${team} • ${agentName}`;
+      document.getElementById('agent-stats').innerHTML = `
+        <div class="grid grid-cols-2 gap-6 text-lg">
+          <div>Zysk: <span class="text-green-400">+6.7%</span></div>
+          <div>Straty: <span class="text-red-400">-0.5%</span></div>
+          <div>Skuteczność: <span class="text-green-400">94%</span></div>
+          <div>Pozycje: <span class="font-bold">47</span></div>
+          <div>Max Drawdown: <span class="text-red-400">-0.5%</span></div>
+          <div>Spalił konto: <span class="text-yellow-400">0 razy</span></div>
+        </div>
+      `;
+      document.getElementById('transactions').innerHTML = transHTML;
+
+      document.getElementById('team-modal').classList.add('hidden');
+      document.getElementById('agent-modal').classList.remove('hidden');
+
+      // Wykres equity
+      setTimeout(() => {
+        new Chart(document.getElementById('equityChart'), {
+          type: 'line',
+          data: { labels: ['10:00','11:00','12:00','13:00','14:00'], datasets: [{ label: agentName, data: [0,2.4,5.9,4.8,8.7], borderColor: '#00ff9d', borderWidth: 5, tension: 0.4 }] },
+          options: { animation: { duration: 2500 } }
+        });
+      }, 300);
     }
 
     function closeModal() {
-      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('agent-modal').classList.add('hidden');
+      document.getElementById('team-modal').classList.add('hidden');
     }
 
     showTeams();
